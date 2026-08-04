@@ -113,38 +113,38 @@ The defect occurred due to the function `to_roman` uses the _PAIRS array which h
 
 ### 3.1 Given / When / Then Specification Criteria
 
-#### Criterion 1 (Valid Range Conversion - Standard Flow)
-* **Given** a valid integer input `1994` within the allowed domain $[1, 3999]$,
-* **When** `to_roman(1994)` is invoked,
-* **Then** the function returns string `"MCMXCIV"`.
+### Criterion 1 
+* **Given** a valid roman string with leading or trailing whitespace, such as `"  IV  "`,
+* **When** `from_roman("  IV  ")` is invoked,
+* **Then** the function trims whitespace and returns integer `4`.
 
-#### Criterion 2 (Boundary Out-of-Range Guard)
-* **Given** an integer input `4000` outside the valid range,
-* **When** `to_roman(4000)` is invoked,
-* **Then** a `ValueError` is raised with message `"Input must be an integer between 1 and 3999"`.
 
-#### Criterion 3 (String-Encoded Numeric Type Handling)
-* **Given** a string representation of a valid positive integer (e.g., `"42"`),
-* **When** processed through the system's payload integration handler,
-* **Then** the input is safely coerced or validated to return `"XLII"` without raising a `TypeError`.
+### Criterion 2 
+* **Given** a string with internal whitespace between valid symbols, such as `"X I"`,
+* **When** `from_roman("X I")` is invoked,
+* **Then** the system raises `RomanError`.
+
+
+### Criterion 3 
+* **Given** a string representing a non-canonical roman numeral, such as `"IIII"` or `"VIIII"`,
+* **When** `from_roman("IIII")` is invoked,
+* **Then** the system raises `RomanError`.
+
 
 ---
 
-### 3.2 Acceptance Test Evaluation Results
+### 3.2 Acceptance Test Evaluation First Results
 
-* **Criterion 1:** **PASSED** (Unit & Integration)
-* **Criterion 2:** **PASSED** (Unit & Integration)
-* **Criterion 3:** **FAILED** (Failed during end-to-end integration test execution due to unhandled string input leading to `TypeError`).
+* **Criterion 1:** **FAILED** (roman.converter.RomanError: invalid roman character)
+* **Criterion 2:** **PASSED**
+* **Criterion 3:** **FAILED** (did not raise RomanError)
 
 ---
 
 ### 3.3 Why Code Coverage Cannot Reveal This Defect Class
 
-Code coverage metrics track **executed syntax**, not **specification completeness**:
+Code coverage metrics track executed syntax, not specification completeness. Code coverage tools (like `pytest-cov`) measure which lines of existing code were hit during test runs. If some feature is missing entirely, coverage tools report 100% execution for the lines that exist.
 
-1. **Unexecuted Paths vs. Omitted Code:** Code coverage tools (like `pytest-cov`) measure which lines of existing code were hit during test runs. If code handling string-to-int conversion is **missing entirely**, coverage tools report 100% execution for the lines that exist.
-2. **Type-Space Incompleteness:** A single line of code (e.g., `if number > 0:`) can be executed by `number = 5`, yielding 100% line and branch coverage for that statement. However, running that same line with `number = "5"` causes a runtime failure that code coverage cannot predict.
-3. **Boundary Invariant Blindness:** Coverage measures statement hit count, not input-domain robustness.
 
 ---
 

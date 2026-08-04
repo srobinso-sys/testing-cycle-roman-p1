@@ -271,8 +271,7 @@ def test_integration_from_roman_syntax_unsupported_characters():
 
 
 def test_integration_from_roman_syntax_whitespace_padding():
-    with pytest.raises(RomanError, match="invalid roman character"):
-        from_roman(" XIV ")
+    assert from_roman(" XIV ") == 14
 
 
 def test_integration_from_roman_syntax_empty_string():
@@ -299,3 +298,43 @@ def test_integration_add_roman_exact_max_boundary():
 def test_integration_add_roman_overflow_maximum():
     with pytest.raises(RomanError):
         add_roman("MMM", "M")
+        
+# Acceptance test
+
+def test_from_roman_trims_leading_and_trailing_whitespace():
+    """Given a valid roman string with leading or trailing whitespace,
+    When from_roman is called,
+    Then it should trim the ends and return the correct integer.
+    """
+    assert from_roman("  IV  ") == 4
+    assert from_roman("X ") == 10
+    assert from_roman("\tMCMXCIV\n") == 1994
+
+
+def test_from_roman_rejects_internal_whitespace():
+    """Given a string with internal whitespace between valid symbols,
+    When from_roman is called,
+    Then it must raise RomanError.
+    """
+    with pytest.raises(RomanError):
+        from_roman("X I")
+
+    with pytest.raises(RomanError):
+        from_roman("I V")
+
+@pytest.mark.parametrize(
+    "invalid_canonical_input",
+    [
+        "IIII",  
+        "VIIII", 
+        "XXXX",   
+        "VV",     
+    ],
+)
+def test_from_roman_rejects_non_canonical_strings(invalid_canonical_input):
+    """Given a string representing a non-canonical roman numeral,
+    When from_roman is called,
+    Then it must raise RomanError.
+    """
+    with pytest.raises(RomanError):
+        from_roman(invalid_canonical_input)
