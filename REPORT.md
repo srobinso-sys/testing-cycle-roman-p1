@@ -94,25 +94,18 @@ The Def-Use table tracks variables from where they are defined (**def**) to wher
 ## 2. Integration Finding
 
 ### 2.1 Integration Defect Summary
-During system integration testing of the API gateway service with the core math library, an unexpected **`TypeError: '<=' not supported between instances of 'int' and 'str'`** was triggered when processing payload parameters passed to `to_roman`.
+During system integration testing of the `add_roman` and `subtract_roman` that are built on top of `from_roman` and `to_roman` of the core conversion library, a critical failure was detected when processing Roman numeral conversions. Instead of generating the expected canonical subtractive representation, the `to_roman` function returned a non-canonical additive string, triggering a test suite failure:
 
 ```text
-ERROR: processing request body {'amount': '100'}
-Traceback (most recent call last):
-  File "app/service.py", line 14, in convert_handler
-    roman_val = to_roman(payload['amount'])
-  File "src/to_roman.py", line 3, in to_roman
-    if not (0 < number < 4000):
-TypeError: '<=' not supported between instances of 'int' and 'str'
+FAILED tests/test_converter.py::test_integration_add_roman_ii_and_ii - AssertionError: assert 'IIII' == 'IV'
 ```
 
 ### 2.2 Root Cause Analysis
-The defect occurred due to an implicit type assumption at the boundary between the web application framework (which parsed JSON query parameters as raw `str` objects) and the unit-tested module `to_roman`.
+The defect occurred due to the function `to_roman` uses the _PAIRS array which have a wrong pair. The `_PAIRS` definition mapping integer values to their corresponding Roman numeral symbols must be updated to fix the bug. Having (5, "IV") causes a problem when matching any subtraction rule, causing the loop to default to individual "I" symbols and producing "IIII" instead of "IV".
 
 ### 2.3 Why Unit Tests Passed Without Detecting It
-1. **Mock Isolation & Scope Bias:** Unit tests directly invoked `to_roman(100)` passing native Python `int` literals.
-2. **Missing Boundary Validation Tests:** Unit tests validated boundary *value* extremes (`0`, `1`, `3999`, `4000`), but omitted explicit type-mismatch checks for numeric strings (e.g., `"100"`).
-3. **Contract Disconnect:** The component interface contract did not explicitly enforce type coercion at the HTTP interface layer prior to delegating logic to `to_roman`.
+1. **Missing Boundary and Subtraction Edge Cases:** The inherent test suite only tested standard additive numbers (e.g., 1, 2, 3, 10, 20) or specific high-value numbers, skipping the subtractive boundary numbers around 4 and 5.
+2. **Lack of Round-Trip Testing:** A unit test suite using isolated hardcoded values often misses specific integer-to-symbol edge cases. Had the test suite included round-trip testing across all valid integers in the range where each test transform data from one representation to another and transform it back to the original representation to check correctness.
 
 ---
 
@@ -157,54 +150,10 @@ Code coverage metrics track **executed syntax**, not **specification completenes
 
 ## 4. Code Coverage Analysis (`pytest --cov`)
 
-### 4.1 Coverage Comparison Table
+### Before Adding Test Cases
 
-| Phase | Test Count | Statements | Missed | Branch Execution | Line Coverage | Branch Coverage | Overall Score |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Before Fix** | 6 | 12 | 2 | 5/8 | 83.3% | 62.5% | **75.0%** |
-| **After Fix** | 10 | 14 | 0 | 8/8 | 100.0% | 100.0% | **100.0%** |
+![before](coverage_before.png)
 
----
+#### After Adding Test Cases
 
-### 4.2 Terminal Output (`pytest --cov`)
-
-#### Before Bug Fix (Integration Failure)
-
-```text
-============================= test session starts ==============================
-platform linux -- Python 3.12.2, pytest-8.1.1, pluggy-1.4.0
-rootdir: /workspace/project
-plugins: cov-5.0.0
-collected 6 items
-
-tests/test_roman.py ......                                              [100%]
-
----------- coverage: platform linux, python 3.12.2-final-0 -----------
-Name                  Stmts   Miss Branch BrPart  Cover   Missing
------------------------------------------------------------------
-src/to_roman.py          12      2      8      3    75%   3, 14->13
------------------------------------------------------------------
-TOTAL                    12      2      8      3    75%
-
-============================== 6 passed in 0.04s ===============================
-```
-
-#### After Bug Fix (Added String Handling & Full Guard Tests)
-
-```text
-============================= test session starts ==============================
-platform linux -- Python 3.12.2, pytest-8.1.1, pluggy-1.4.0
-rootdir: /workspace/project
-plugins: cov-5.0.0
-collected 10 items
-
-tests/test_roman.py ..........                                           [100%]
-
----------- coverage: platform linux, python 3.12.2-final-0 -----------
-Name                  Stmts   Miss Branch BrPart  Cover   Missing
------------------------------------------------------------------
-src/to_roman.py          14      0      8      0   100%
------------------------------------------------------------------
-TOTAL                    14      0      8      0   100%
-
-============================== 10 passed in 0.05s ==============================
+![after](coverage_after.png)
