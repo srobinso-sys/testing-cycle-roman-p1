@@ -80,12 +80,14 @@ The Def-Use table tracks variables from where they are defined (**def**) to wher
 | `n` | 1 | 8 | **p-use** |
 | `n` | 1 | 12 | **c-use** |
 | `out` | 11 | 15 | **c-use** |
-| `out` | 11 | 15 | **c-use** |
-| `result` | Node 2 | Node 5 | **c-use** |
-| `result` | Node 2 / Node 5 | NodeEnd | **c-use** |
-| `val_map` | Node 2 | Node 3 | **p-use** |
-| `val` | Node 3 | Node 4 | **p-use** |
-| `val` | Node 3 | Node 5 | **c-use** |
+| `out` | 11 | 19 | **c-use** |
+| `value` | 13 | 14 | **p-use** |
+| `value` | 13 | 16 | **c-use** |
+| `symbol` | 13 | 15 | **c-use** |
+| `remaining` | 12 | 14 | **p-use** |
+| `remaining` | 12 | 16 | **c-use** |
+| `remaining` | 16 | 14 | **p-use** |
+| `remaining` | 16 | 16 | **c-use** |
 
 ---
 
