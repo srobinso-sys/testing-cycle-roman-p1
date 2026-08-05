@@ -113,19 +113,19 @@ The defect occurred due to the function `to_roman` uses the _PAIRS array which h
 
 ### 3.1 Given / When / Then Specification Criteria
 
-### Criterion 1 
+### Criterion 1 (Section 3)
 * **Given** a valid roman string with leading or trailing whitespace, such as `"  IV  "`,
 * **When** `from_roman("  IV  ")` is invoked,
 * **Then** the function trims whitespace and returns integer `4`.
 
 
-### Criterion 2 
+### Criterion 2 (Section 3)
 * **Given** a string with internal whitespace between valid symbols, such as `"X I"`,
 * **When** `from_roman("X I")` is invoked,
 * **Then** the system raises `RomanError`.
 
 
-### Criterion 3 
+### Criterion 3 (Section 4)
 * **Given** a string representing a non-canonical roman numeral, such as `"IIII"` or `"VIIII"`,
 * **When** `from_roman("IIII")` is invoked,
 * **Then** the system raises `RomanError`.
