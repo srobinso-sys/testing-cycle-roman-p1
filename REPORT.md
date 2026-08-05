@@ -139,12 +139,13 @@ The defect occurred due to the function `to_roman` uses the _PAIRS array which h
 * **Criterion 2:** **PASSED**
 * **Criterion 3:** **FAILED** (did not raise RomanError)
 
+![Acceptance_test](acceptance_test.png)
+
 ---
 
 ### 3.3 Why Code Coverage Cannot Reveal This Defect Class
 
 Code coverage metrics track executed syntax, not specification completeness. Code coverage tools (like `pytest-cov`) measure which lines of existing code were hit during test runs. If some feature is missing entirely, coverage tools report 100% execution for the lines that exist.
-
 
 ---
 

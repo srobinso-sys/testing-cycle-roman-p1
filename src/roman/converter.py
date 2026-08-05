@@ -56,29 +56,53 @@ def to_roman(n):
 def from_roman(s):
     if not isinstance(s, str):
         raise RomanError("value must be a string")
+    
+    if any(ch.isspace() for ch in s.strip()):
+        raise RomanError("internal whitespace not allowed")
+
     text = s.upper().strip()
     if text == "":
         raise RomanError("empty string is not a roman numeral")
     for ch in text:
         if ch not in _SINGLE:
             raise RomanError("invalid roman character: " + ch)
+
+    for char in ("I", "X", "C"):
+        if char * 4 in text:
+            raise RomanError("repeated symbol in non-canonical form")
+    for char in ("V", "L", "D"):
+        if text.count(char) > 1:
+            raise RomanError("repeated single-use symbol")
+
     total = 0
     i = 0
     length = len(text)
+    last_group_val = float("inf")
+    sub_limit = float("inf")
+
     while i < length:
-        if i + 1 < length:
+        group_val = 0
+        current_sub = float("inf")
+
+        if i + 1 < length and text[i:i + 2] in _VALID_SUBTRACTIVE:
             pair = text[i:i + 2]
-            if pair in _VALID_SUBTRACTIVE:
-                total += _SINGLE[pair[1]] - _SINGLE[pair[0]]
-                i += 2
-                continue
-        current = _SINGLE[text[i]]
-        if i + 1 < length:
-            nxt = _SINGLE[text[i + 1]]
-            if current < nxt:
+            group_val = _SINGLE[pair[1]] - _SINGLE[pair[0]]
+            current_sub = _SINGLE[pair[0]]  
+            i += 2
+        else:
+            current = _SINGLE[text[i]]
+            if i + 1 < length and current < _SINGLE[text[i + 1]]:
                 raise RomanError("invalid subtractive pair: " + text[i:i + 2])
-        total += current
-        i += 1
+            group_val = current
+            i += 1
+
+        if group_val > last_group_val or group_val >= sub_limit:
+            raise RomanError("non-canonical group ordering")
+
+        total += group_val
+        last_group_val = group_val
+        sub_limit = min(sub_limit, current_sub)
+
     if total < _MIN_VALUE or total > _MAX_VALUE:
         raise RomanError("value out of range 1..3999")
     return total
